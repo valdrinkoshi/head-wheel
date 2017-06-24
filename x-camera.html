@@ -9,7 +9,7 @@
     </app-media-devices>
 
     <!-- ...devices are connected to the media stream.... -->
-    <app-media-stream video-device="[[videoDevice]]" stream="{{stream}}" active="[[!disabled]]">
+    <app-media-stream video-device="[[videoDevice]]" video-constraints="[[videoConstraints]]" stream="{{stream}}" active="[[!disabled]]">
     </app-media-stream>
 
     <!-- ...media stream is connected to the video output. -->
@@ -21,6 +21,12 @@
       properties: {
         videoDevice: {
           type: Boolean
+        },
+        videoConstraints: {
+          type: Object,
+          value: () => {
+            facingMode: 'environment'
+          }
         },
         stream: {
           type: Boolean
