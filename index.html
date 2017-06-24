@@ -98,14 +98,14 @@
       const maxTime = 1000;
 
       function ontouchstart(event) {
-        const touch = event.targetTouches ? event.targetTouches[0] : event;
+        const touch = getTouch(event);
         lastTouchPosition.pageX = touch.pageX;
         lastTouchPosition.pageY = touch.pageY;
         lastTouchPosition.time = performance.now();
       }
 
       function ontouchend(event) {
-        const touch = event.targetTouches ? event.targetTouches[0] : event;
+        const touch = getTouch(event);
         const deltaY = (touch.pageY - lastTouchPosition.pageY) / maxY;
         if (deltaY > 0) return;
         const deltaX = (touch.pageX - lastTouchPosition.pageX) / maxX;
@@ -122,6 +122,13 @@
         ball.body.applyForce(
           new CANNON.Vec3(forceX, forceY, forceZ),
           new CANNON.Vec3().copy(ball.body.position));
+      }
+
+      function getTouch(event) {
+        if (event.touches && event.touches[0]) return event.touches[0];
+        if (event.targetTouches && event.targetTouches[0]) return event.targetTouches[0];
+        if (event.changedTouches && event.changedTouches[0]) return event.changedTouches[0];
+        return event;
       }
     </script>
   </a-scene>
