@@ -1,0 +1,35 @@
+<link rel="import" href="./bower_components/polymer/polymer.html">
+<link rel="import" href="./bower_components/app-media/app-media-devices.html">
+<link rel="import" href="./bower_components/app-media/app-media-stream.html">
+<link rel="import" href="./bower_components/app-media/app-media-video.html">
+<dom-module id="x-camera">
+  <template>
+    <!-- The computer is connected to devices... -->
+    <app-media-devices kind="videoinput" selected-device="{{videoDevice}}">
+    </app-media-devices>
+
+    <!-- ...devices are connected to the media stream.... -->
+    <app-media-stream video-device="[[videoDevice]]" stream="{{stream}}" active="[[!disabled]]">
+    </app-media-stream>
+
+    <!-- ...media stream is connected to the video output. -->
+    <app-media-video source="[[stream]]" autoplay muted mirror></app-media-video>
+  </template>
+  <script>
+    Polymer({
+      is: 'x-camera',
+      properties: {
+        videoDevice: {
+          type: Boolean
+        },
+        stream: {
+          type: Boolean
+        },
+        disabled: {
+          type: Boolean,
+          value: false
+        },
+      }
+    });
+  </script>
+</dom-module>

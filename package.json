@@ -11,6 +11,10 @@
   "dependencies": {
     "aframe": "^0.5.0",
     "aframe-extras": "^3.8.4",
-    "aframe-physics-system": "^1.4.1"
+    "aframe-physics-system": "^1.4.1",
+    "webrtc-adapter": "^4.0.2"
+  },
+  "devDependencies": {
+    "obj2gltf": "^1.1.1"
   }
 }

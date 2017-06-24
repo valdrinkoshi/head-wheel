@@ -1,0 +1,21 @@
+{
+  "name": "head-wheel",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "valdrinkoshi <valdrin@google.com>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "app-media": "PolymerElements/app-media#^0.7.2"
+  }
+}
