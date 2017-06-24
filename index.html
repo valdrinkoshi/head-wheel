@@ -24,11 +24,16 @@
       <a-asset-item id="ball-img" src="assets/germany2006.jpg"></a-asset-item>
     </a-assets>
 
-    <a-entity loock-controls camera="userHeight: 1.6" position="0 0 0"></a-entity>
-
-    <a-plane id="ground" static-body position="0 0 -4" visible="false" rotation="-90 0 0" width="50" height="100"></a-plane>
+    <a-entity camera="userHeight: 1.6" position="0 0 0"></a-entity>
 
     <a-sphere id="ball" dynamic-body="shape: sphere; mass: 1" position="0 2.4 -0.5" radius=".11" src="#ball-img"></a-sphere>
+
+    <!--boundaries -->
+    <a-entity visible="false">
+      <a-plane id="ground" static-body position="0 0 0" rotation="-90 0 0" width="50" height="100"></a-plane>
+      <a-plane static-body position="0 25 -25" width="50" height="50"></a-plane>
+      <a-plane static-body position="0 25 25" width="50" height="50"></a-plane>
+    </a-entity>
 
     <!--goal-->
     <a-entity position="0 0 -20" id="goal">
@@ -39,7 +44,7 @@
       <a-plane static-body width="1" height="2.4" rotation="0 -90 0" position="3.5 1.2 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
       <a-plane static-body width="1" height="7.06" rotation="90 0 90" position="0 2.4 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
       <a-plane static-body width="7.06" height="2.4" position="0 1.2 -1" transparent="true" opacity="0.5" material="side: double"></a-plane>
-      <a-plane static-body position="0 0 -5" visible="false" width="50" height="50"></a-plane>
+
     </a-entity>
 
     <x-camera></x-camera>
