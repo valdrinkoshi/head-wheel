@@ -24,8 +24,12 @@
         },
         videoConstraints: {
           type: Object,
-          value: () => {
-            facingMode: 'environment'
+          value: function() {
+            return {
+              facingMode: {
+                exact: "environment"
+              }
+            };
           }
         },
         stream: {
