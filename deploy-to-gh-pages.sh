@@ -41,7 +41,6 @@ bower install
 bower install $org/$repo#$branch
 # copy demo, replace "../ with "./bower_components in urls
 cp -r bower_components/$repo/ ./
-sed -i '' 's/"\.\/node_modules\//"\/\/unpkg.com\//g' index.html
 
 # send it all to github
 git add -A .
