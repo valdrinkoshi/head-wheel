@@ -87520,7 +87520,7 @@ module.exports={
     "/aframe-physics-system"
   ],
   "_resolved": "git://github.com/donmccurdy/cannon.js.git#022e8ba53fa83abf0ad8a0e4fd08623123838a17",
-  "_shasum": "6fecca60d4a5fd9b220ab694037397eee1e6f7a2",
+  "_shasum": "14e7dc4cefa95108bad662a67b839c3946484b77",
   "_shrinkwrap": null,
   "_spec": "cannon@github:donmccurdy/cannon.js#v0.6.2-dev1",
   "_where": "/Users/valdrin/dev/head-wheel/node_modules/aframe-physics-system",

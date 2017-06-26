@@ -2,17 +2,17 @@
   "name": "head-wheel",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "vendor": "browserify _vendor.js --verbose -t babelify -t uglifyify -o vendor.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "browserify _vendor.js --verbose -t babelify -t uglifyify -o vendor.js",
+    "postinstall": "bower install",
+    "start": "python -m SimpleHTTPServer",
+    "gh-pages": "./deploy-to-gh-pages.sh"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "aframe": "^0.5.0",
     "aframe-extras": "^3.8.4",
-    "aframe-physics-system": "^1.4.1",
     "webrtc-adapter": "^4.0.2"
   },
   "devDependencies": {
