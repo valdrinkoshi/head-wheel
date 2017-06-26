@@ -48,13 +48,13 @@
       <a-asset-item id="ball-img" src="assets/germany2006.jpg"></a-asset-item>
     </a-assets>
 
-    <a-entity camera="userHeight: 1.2" universal-controls="movementEnabled: false; rotationControls: hmd"></a-entity>
+    <a-entity id="player" camera="userHeight: 1.2" universal-controls="movementControls: keyboard; rotationControls: hmd"></a-entity>
 
-    <a-sphere id="ball" dynamic-body="shape: sphere; mass: 1" radius=".11" src="#ball-img"></a-sphere>
+    <a-sphere id="ball" position="0 2.4 -.5" dynamic-body="shape: sphere; mass: 1" radius=".11" src="#ball-img"></a-sphere>
 
     <!--boundaries -->
     <a-entity visible="false">
-      <a-plane id="ground" static-body position="0 0 0" rotation="-90 0 0" width="50" height="100"></a-plane>
+      <a-plane id="ground" static-body position="0 0 25" rotation="-90 0 0" width="50" height="100"></a-plane>
       <a-plane static-body position="0 25 -25" width="50" height="50"></a-plane>
       <a-plane static-body position="0 25 25" width="50" height="50"></a-plane>
     </a-entity>
@@ -69,111 +69,150 @@
       <a-plane static-body width="1" height="7.06" rotation="90 0 90" position="0 2.4 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
       <a-plane static-body width="7.06" height="2.4" position="0 1.2 -1" transparent="true" opacity="0.5" material="side: double"></a-plane>
     </a-entity>
-
     <x-camera></x-camera>
-
-    <script>
-      let netsBodies, restartTimeout;
-      const lastTouchPosition = {
-        x: 0,
-        y: 0,
-        time: 0
-      };
-      const maxX = window.innerWidth;
-      const maxY = window.innerHeight;
-      const maxTime = 1000;
-
-      setTimeout(restart, 1000);
-
-      function restart() {
-        ball.body.force = new CANNON.Vec3(0, 0, 0);
-        ball.body.velocity = new CANNON.Vec3(0, 0, 0);
-        ball.body.torque = new CANNON.Vec3(0, 0, 0);
-        ball.body.angularVelocity = new CANNON.Vec3(0, 0, 0);
-        ball.body.position = new CANNON.Vec3(0, 2.4, -.5);
-        netsBodies = Array.from(goal.querySelectorAll('a-plane')).map(el => el.body);
-        ball.body.addEventListener('collide', oncollide);
-        document.body.classList.remove('goal');
-        addInteractionListeners();
-      }
-
-      function oncollide(e) {
-        if (ground.body === e.body) return;
-        if (netsBodies.indexOf(e.body) !== -1) {
-          document.body.classList.add('goal');
-        }
-        console.log('Player has collided with body #', e.body);
-        ball.body.removeEventListener('collide', oncollide);
-
-        restartTimeout && clearTimeout(restartTimeout);
-        restartTimeout = setTimeout(restart, 2000);
-      }
-
-      function ontouchstart(event) {
-        const touch = getTouch(event);
-        lastTouchPosition.pageX = touch.pageX;
-        lastTouchPosition.pageY = touch.pageY;
-        lastTouchPosition.time = performance.now();
-      }
-
-      function ontouchend(event) {
-        const touch = getTouch(event);
-        const deltaY = (touch.pageY - lastTouchPosition.pageY) / maxY;
-        if (deltaY > 0) return;
-        const deltaX = (touch.pageX - lastTouchPosition.pageX) / maxX;
-        const deltaTime = 1000 / Math.min(maxTime, performance.now() - lastTouchPosition.time);
-
-        const forceX = deltaX * 300;
-        const forceY = 80 * deltaTime;
-        const forceZ = 200 * deltaY * deltaTime;
-
-        // const forceX = Math.random() * 100 - 200;
-        // const forceY = Math.random() * 250 - 500;
-        // const forceZ = -(Math.random() * 1000 + 500);
-        if (forceX === 0 && forceY === 0 && forceZ === 0) {
-          return;
-        }
-        console.log(forceX, forceY, forceZ);
-        ball.body.applyForce(
-          new CANNON.Vec3(forceX, forceY, forceZ),
-          new CANNON.Vec3().copy(ball.body.position));
-
-        removeInteractionListeners();
-        // Wait 7s then restart.
-        restartTimeout && clearTimeout(restartTimeout);
-        restartTimeout = setTimeout(restart, 7000);
-      }
-
-      function getTouch(event) {
-        if (event.touches && event.touches[0]) return event.touches[0];
-        if (event.targetTouches && event.targetTouches[0]) return event.targetTouches[0];
-        if (event.changedTouches && event.changedTouches[0]) return event.changedTouches[0];
-        return event;
-      }
-
-      function addInteractionListeners() {
-        document.addEventListener('touchstart', ontouchstart, {
-          passive: true
-        });
-        document.addEventListener('touchend', ontouchend, {
-          passive: true
-        });
-        document.addEventListener('mousedown', ontouchstart);
-        document.addEventListener('mouseup', ontouchend);
-      }
-
-      function removeInteractionListeners() {
-        document.removeEventListener('touchstart', ontouchstart, {
-          passive: true
-        });
-        document.removeEventListener('touchend', ontouchend, {
-          passive: true
-        });
-        document.removeEventListener('mousedown', ontouchstart);
-        document.removeEventListener('mouseup', ontouchend);
-      }
-    </script>
   </a-scene>
+
+  <script>
+    let netsBodies, restartTimeout;
+    const lastTouchPosition = {
+      x: 0,
+      y: 0,
+      time: 0
+    };
+    const maxX = window.innerWidth;
+    const maxY = window.innerHeight;
+    const maxTime = 1000;
+    const positions = [{
+      x: 0,
+      y: 0,
+      z: 0
+    }, {
+      x: 10,
+      y: 0,
+      z: 5
+    }, {
+      x: -16,
+      y: 0,
+      z: -1
+    }, {
+      x: -7,
+      y: 0,
+      z: -1
+    }, {
+      x: 9,
+      y: 0,
+      z: 2
+    }, {
+      x: 0,
+      y: 0,
+      z: -6
+    }];
+
+    setTimeout(restart, 1000);
+    let started = false;
+
+    function restart() {
+      if (!started) {
+        netsBodies = Array.from(goal.querySelectorAll('a-plane')).map(el => el.body);
+      } else {
+        const position = positions[Math.floor(Math.random() * positions.length)];
+        console.log(position);
+        player.setAttribute('position', {
+          x: position.x,
+          z: position.z
+        });
+        ball.body.position = new CANNON.Vec3(position.x, position.y + 2.4, position.z - .5);
+      }
+      started = true;
+
+      ball.body.velocity = new CANNON.Vec3(0, 0, 0);
+      ball.body.angularVelocity = new CANNON.Vec3(0, 0, 0);
+
+      ball.body.addEventListener('collide', oncollide);
+      document.body.classList.remove('goal');
+      addInteractionListeners();
+    }
+
+    function oncollide(e) {
+      // Wherever it bounces, slow it down!
+      ball.body.angularVelocity = ball.body.angularVelocity.scale(0.3);
+      if (ground.body === e.body) {
+        return;
+      }
+      if (netsBodies.indexOf(e.body) !== -1) {
+        document.body.classList.add('goal');
+      }
+      console.log('Player has collided with body #', e.body);
+      ball.body.removeEventListener('collide', oncollide);
+
+      ball.body.velocity = new CANNON.Vec3(0, 0, 0);
+      ball.body.angularVelocity = new CANNON.Vec3(0, 0, 0);
+
+      restartTimeout && clearTimeout(restartTimeout);
+      restartTimeout = setTimeout(restart, 2000);
+    }
+
+    function ontouchstart(event) {
+      const touch = getTouch(event);
+      lastTouchPosition.pageX = touch.pageX;
+      lastTouchPosition.pageY = touch.pageY;
+      lastTouchPosition.time = performance.now();
+    }
+
+    function ontouchend(event) {
+      const touch = getTouch(event);
+      const deltaY = (touch.pageY - lastTouchPosition.pageY) / maxY;
+      if (deltaY >= -0.05) return;
+      const deltaX = (touch.pageX - lastTouchPosition.pageX) / maxX;
+      const deltaTime = 1000 / Math.min(maxTime, performance.now() - lastTouchPosition.time);
+
+      const forceX = 200 * deltaX * deltaTime;
+      const forceY = 80 * deltaTime;
+      const forceZ = 200 * deltaY * deltaTime;
+
+      // const forceX = Math.random() * 100 - 200;
+      // const forceY = Math.random() * 250 - 500;
+      // const forceZ = -(Math.random() * 1000 + 500);
+      console.log('forces', forceX, forceY, forceZ);
+      ball.body.applyForce(
+        new CANNON.Vec3(forceX, forceY, forceZ),
+        new CANNON.Vec3().copy(ball.body.position));
+
+      removeInteractionListeners();
+      // Wait 7s then restart.
+      restartTimeout && clearTimeout(restartTimeout);
+      restartTimeout = setTimeout(restart, 7000);
+    }
+
+    function getTouch(event) {
+      if (event.touches && event.touches[0]) return event.touches[0];
+      if (event.targetTouches && event.targetTouches[0]) return event.targetTouches[0];
+      if (event.changedTouches && event.changedTouches[0]) return event.changedTouches[0];
+      return event;
+    }
+
+    function addInteractionListeners() {
+      document.addEventListener('touchstart', ontouchstart, {
+        passive: true
+      });
+      document.addEventListener('touchend', ontouchend, {
+        passive: true
+      });
+      document.addEventListener('mousedown', ontouchstart);
+      document.addEventListener('mouseup', ontouchend);
+    }
+
+    function removeInteractionListeners() {
+      document.removeEventListener('touchstart', ontouchstart, {
+        passive: true
+      });
+      document.removeEventListener('touchend', ontouchend, {
+        passive: true
+      });
+      document.removeEventListener('mousedown', ontouchstart);
+      document.removeEventListener('mouseup', ontouchend);
+    }
+  </script>
 </body>
 
 </html>
