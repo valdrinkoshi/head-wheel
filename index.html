@@ -8,6 +8,24 @@
   <link rel="import" href="x-camera.html">
 
   <style>
+    body.goal::after {
+      content: 'Goal!';
+      font-family: 'Roboto', Helvetica, sans-serif;
+      font-size: 60px;
+      line-height: 100vh;
+      text-align: center;
+      color: white;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      will-change: transform;
+      animation: pulse 250ms ease-in-out;
+      animation-iteration-count: infinite;
+      animation-direction: alternate;
+    }
+
     x-camera {
       position: fixed;
       top: 0;
@@ -15,18 +33,24 @@
       right: 0;
       bottom: 0;
     }
+
+    @keyframes pulse {
+      to {
+        transform: scale(1.2, 1.2);
+      }
+    }
   </style>
 </head>
 
 <body>
-  <a-scene physics="debug:false;restitution: 0.55">
+  <a-scene physics="debug:false; restitution: 0.55">
     <a-assets>
       <a-asset-item id="ball-img" src="assets/germany2006.jpg"></a-asset-item>
     </a-assets>
 
-    <a-entity camera="userHeight: 1.6" look-controls position="0 0 0"></a-entity>
+    <a-entity camera="userHeight: 1.2" universal-controls="movementEnabled: false; rotationControls: hmd"></a-entity>
 
-    <a-sphere id="ball" dynamic-body="shape: sphere; mass: 1" position="0 2.4 -0.5" radius=".11" src="#ball-img"></a-sphere>
+    <a-sphere id="ball" dynamic-body="shape: sphere; mass: 1" radius=".11" src="#ball-img"></a-sphere>
 
     <!--boundaries -->
     <a-entity visible="false">
@@ -44,44 +68,22 @@
       <a-plane static-body width="1" height="2.4" rotation="0 -90 0" position="3.5 1.2 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
       <a-plane static-body width="1" height="7.06" rotation="90 0 90" position="0 2.4 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
       <a-plane static-body width="7.06" height="2.4" position="0 1.2 -1" transparent="true" opacity="0.5" material="side: double"></a-plane>
-
     </a-entity>
 
     <x-camera></x-camera>
 
     <script>
-      document.addEventListener('keydown', function(e) {
-        if (e.keyCode === 32) kickTheBall();
-      });
+      let netsBodies, restartTimeout;
+      const lastTouchPosition = {
+        x: 0,
+        y: 0,
+        time: 0
+      };
+      const maxX = window.innerWidth;
+      const maxY = window.innerHeight;
+      const maxTime = 1000;
 
-      document.addEventListener('touchstart', ontouchstart, {
-        passive: true
-      });
-
-      document.addEventListener('touchend', ontouchend, {
-        passive: true
-      });
-
-      document.addEventListener('mousedown', ontouchstart);
-      document.addEventListener('mouseup', ontouchend);
-
-      let netsBodies;
-      setTimeout(function() {
-        netsBodies = Array.from(goal.querySelectorAll('a-plane')).map(el => el.body);
-        ball.body.addEventListener('collide', oncollide);
-      }, 1000);
-
-
-      function oncollide(e) {
-        if (ground.body === e.body) return;
-        if (netsBodies.indexOf(e.body) !== -1) {
-          console.log('gooooooooooalll');
-        } else {
-          console.log('Player has collided with body #', e.body);
-        }
-        ball.body.removeEventListener('collide', oncollide);
-        setTimeout(restart, 1000);
-      }
+      setTimeout(restart, 1000);
 
       function restart() {
         ball.body.force = new CANNON.Vec3(0, 0, 0);
@@ -91,16 +93,21 @@
         ball.body.position = new CANNON.Vec3(0, 2.4, -.5);
         netsBodies = Array.from(goal.querySelectorAll('a-plane')).map(el => el.body);
         ball.body.addEventListener('collide', oncollide);
+        document.body.classList.remove('goal');
+        addInteractionListeners();
       }
 
-      const lastTouchPosition = {
-        x: 0,
-        y: 0,
-        time: 0
-      };
-      const maxX = window.innerWidth;
-      const maxY = window.innerHeight;
-      const maxTime = 1000;
+      function oncollide(e) {
+        if (ground.body === e.body) return;
+        if (netsBodies.indexOf(e.body) !== -1) {
+          document.body.classList.add('goal');
+        }
+        console.log('Player has collided with body #', e.body);
+        ball.body.removeEventListener('collide', oncollide);
+
+        restartTimeout && clearTimeout(restartTimeout);
+        restartTimeout = setTimeout(restart, 2000);
+      }
 
       function ontouchstart(event) {
         const touch = getTouch(event);
@@ -117,16 +124,24 @@
         const deltaTime = 1000 / Math.min(maxTime, performance.now() - lastTouchPosition.time);
 
         const forceX = deltaX * 300;
-        const forceY = 0;
+        const forceY = 80 * deltaTime;
         const forceZ = 200 * deltaY * deltaTime;
 
         // const forceX = Math.random() * 100 - 200;
         // const forceY = Math.random() * 250 - 500;
         // const forceZ = -(Math.random() * 1000 + 500);
+        if (forceX === 0 && forceY === 0 && forceZ === 0) {
+          return;
+        }
         console.log(forceX, forceY, forceZ);
         ball.body.applyForce(
           new CANNON.Vec3(forceX, forceY, forceZ),
           new CANNON.Vec3().copy(ball.body.position));
+
+        removeInteractionListeners();
+        // Wait 7s then restart.
+        restartTimeout && clearTimeout(restartTimeout);
+        restartTimeout = setTimeout(restart, 7000);
       }
 
       function getTouch(event) {
@@ -134,6 +149,28 @@
         if (event.targetTouches && event.targetTouches[0]) return event.targetTouches[0];
         if (event.changedTouches && event.changedTouches[0]) return event.changedTouches[0];
         return event;
+      }
+
+      function addInteractionListeners() {
+        document.addEventListener('touchstart', ontouchstart, {
+          passive: true
+        });
+        document.addEventListener('touchend', ontouchend, {
+          passive: true
+        });
+        document.addEventListener('mousedown', ontouchstart);
+        document.addEventListener('mouseup', ontouchend);
+      }
+
+      function removeInteractionListeners() {
+        document.removeEventListener('touchstart', ontouchstart, {
+          passive: true
+        });
+        document.removeEventListener('touchend', ontouchend, {
+          passive: true
+        });
+        document.removeEventListener('mousedown', ontouchstart);
+        document.removeEventListener('mouseup', ontouchend);
       }
     </script>
   </a-scene>
