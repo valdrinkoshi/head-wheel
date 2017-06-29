@@ -121,7 +121,20 @@
           x: position.x,
           z: position.z
         });
-        ball.body.position = new CANNON.Vec3(position.x, position.y + 2.4, position.z - .5);
+        const yAngle = -Math.PI / 2 - Math.atan2(-20 - position.z, -position.x),
+          cos = Math.cos(yAngle),
+          sin = Math.sin(yAngle),
+          dx = 0,
+          dz = -0.5,
+          x = cos * dx - sin * dz,
+          z = sin * dx + cos * dz;
+
+        // update rotation to face goal.
+        player.setAttribute('rotation', {
+          y: yAngle * 180 / Math.PI
+        });
+        // position ball in front of the player.
+        ball.body.position = new CANNON.Vec3(position.x - x, position.y + 2.4, position.z + z);
       }
       started = true;
 
@@ -163,25 +176,36 @@
       const touch = getTouch(event);
       const deltaY = (touch.pageY - lastTouchPosition.pageY) / maxY;
       if (deltaY >= -0.05) return;
-      const deltaX = (touch.pageX - lastTouchPosition.pageX) / maxX;
+      const deltaX = (lastTouchPosition.pageX - touch.pageX) / maxX;
       const deltaTime = 1000 / Math.min(maxTime, performance.now() - lastTouchPosition.time);
 
       const forceX = 200 * deltaX * deltaTime;
       const forceY = 80 * deltaTime;
       const forceZ = 200 * deltaY * deltaTime;
 
+
       // const forceX = Math.random() * 100 - 200;
       // const forceY = Math.random() * 250 - 500;
       // const forceZ = -(Math.random() * 1000 + 500);
-      console.log('forces', forceX, forceY, forceZ);
-      ball.body.applyForce(
-        new CANNON.Vec3(forceX, forceY, forceZ),
-        new CANNON.Vec3().copy(ball.body.position));
+      applyForce(forceX, forceY, forceZ);
 
       removeInteractionListeners();
       // Wait 7s then restart.
       restartTimeout && clearTimeout(restartTimeout);
       restartTimeout = setTimeout(restart, 7000);
+    }
+
+    function applyForce(x, y, z) {
+      console.log('forces in', x, y, z);
+      const yAngle = player.getAttribute('rotation').y * Math.PI / 180,
+        cos = Math.cos(yAngle),
+        sin = Math.sin(yAngle),
+        normx = cos * x - sin * z,
+        normz = sin * x + cos * z;
+      console.log('forces out', -normx, y, normz);
+      ball.body.applyForce(
+        new CANNON.Vec3(-normx, y, normz),
+        new CANNON.Vec3().copy(ball.body.position));
     }
 
     function getTouch(event) {
