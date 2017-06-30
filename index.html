@@ -50,25 +50,27 @@
 
     <a-entity id="player" camera="userHeight: 1.2" universal-controls="movementControls: keyboard; rotationControls: hmd"></a-entity>
 
-    <a-sphere id="ball" position="0 2.4 -.5" dynamic-body="shape: sphere; mass: 1" radius=".11" src="#ball-img"></a-sphere>
-
-    <!--boundaries -->
-    <a-entity visible="false">
-      <a-plane id="ground" static-body position="0 0 25" rotation="-90 0 0" width="50" height="100"></a-plane>
-      <a-plane static-body position="0 25 -25" width="50" height="50"></a-plane>
-      <a-plane static-body position="0 25 25" width="50" height="50"></a-plane>
+    <a-entity id="world">
+      <a-entity id="worldInner">
+        <a-sphere id="ball" position="0 2.4 -.5" dynamic-body="shape: sphere; mass: 1" radius=".11" src="#ball-img"></a-sphere>
+        <!--boundaries -->
+        <a-entity visible="false">
+          <a-plane id="ground" static-body position="0 0 25" rotation="-90 0 0" width="2000" height="2000"></a-plane>
+          <a-plane static-body position="0 50 25" width="2000" height="100"></a-plane>
+        </a-entity>
+        <!--goal-->
+        <a-entity position="0 0 -20" id="goal">
+          <a-cylinder static-body height="2.4" radius=".06" position="-3.5 1.2 0"></a-cylinder>
+          <a-cylinder static-body height="2.4" radius=".06" position="3.5 1.2 0"></a-cylinder>
+          <a-cylinder static-body height="7.06" radius=".06" position="0 2.4 0" rotation="0 0 90"></a-cylinder>
+          <a-plane static-body width="1" height="2.4" rotation="0 90 0" position="-3.5 1.2 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
+          <a-plane static-body width="1" height="2.4" rotation="0 -90 0" position="3.5 1.2 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
+          <a-plane static-body width="1" height="7.06" rotation="90 0 90" position="0 2.4 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
+          <a-plane static-body width="7.06" height="2.4" position="0 1.2 -1" transparent="true" opacity="0.5" material="side: double"></a-plane>
+        </a-entity>
+      </a-entity>
     </a-entity>
 
-    <!--goal-->
-    <a-entity position="0 0 -20" id="goal">
-      <a-cylinder static-body height="2.4" radius=".06" position="-3.5 1.2 0"></a-cylinder>
-      <a-cylinder static-body height="2.4" radius=".06" position="3.5 1.2 0"></a-cylinder>
-      <a-cylinder static-body height="7.06" radius=".06" position="0 2.4 0" rotation="0 0 90"></a-cylinder>
-      <a-plane static-body width="1" height="2.4" rotation="0 90 0" position="-3.5 1.2 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
-      <a-plane static-body width="1" height="2.4" rotation="0 -90 0" position="3.5 1.2 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
-      <a-plane static-body width="1" height="7.06" rotation="90 0 90" position="0 2.4 -.5" transparent="true" opacity="0.5" material="side: double"></a-plane>
-      <a-plane static-body width="7.06" height="2.4" position="0 1.2 -1" transparent="true" opacity="0.5" material="side: double"></a-plane>
-    </a-entity>
     <x-camera></x-camera>
   </a-scene>
 
@@ -82,31 +84,6 @@
     const maxX = window.innerWidth;
     const maxY = window.innerHeight;
     const maxTime = 1000;
-    const positions = [{
-      x: 0,
-      y: 0,
-      z: 0
-    }, {
-      x: 10,
-      y: 0,
-      z: 5
-    }, {
-      x: -16,
-      y: 0,
-      z: -1
-    }, {
-      x: -7,
-      y: 0,
-      z: -1
-    }, {
-      x: 9,
-      y: 0,
-      z: 2
-    }, {
-      x: 0,
-      y: 0,
-      z: -6
-    }];
 
     setTimeout(restart, 1000);
     let started = false;
@@ -115,26 +92,13 @@
       if (!started) {
         netsBodies = Array.from(goal.querySelectorAll('a-plane')).map(el => el.body);
       } else {
-        const position = positions[Math.floor(Math.random() * positions.length)];
+        const position = {
+          x: (Math.random() - Math.random()) * 40,
+          y: 0,
+          z: 16 - Math.random() * 56
+        };
         console.log(position);
-        player.setAttribute('position', {
-          x: position.x,
-          z: position.z
-        });
-        const yAngle = -Math.PI / 2 - Math.atan2(-20 - position.z, -position.x),
-          cos = Math.cos(yAngle),
-          sin = Math.sin(yAngle),
-          dx = 0,
-          dz = -0.5,
-          x = cos * dx - sin * dz,
-          z = sin * dx + cos * dz;
-
-        // update rotation to face goal.
-        player.setAttribute('rotation', {
-          y: yAngle * 180 / Math.PI
-        });
-        // position ball in front of the player.
-        ball.body.position = new CANNON.Vec3(position.x - x, position.y + 2.4, position.z + z);
+        moveTo(position);
       }
       started = true;
 
@@ -144,6 +108,41 @@
       ball.body.addEventListener('collide', oncollide);
       document.body.classList.remove('goal');
       addInteractionListeners();
+    }
+
+    function moveTo(position) {
+      const playerAngle = player.getAttribute('rotation').y;
+      const worldAngle = playerAngle - 90 - Math.atan2(position.z - 20, position.x) * 180 / Math.PI;
+      // update rotation to face goal.
+      world.setAttribute('rotation', {
+        y: worldAngle
+      });
+      worldInner.setAttribute('position', {
+        x: -position.x,
+        z: position.z
+      });
+      // position ball in front of the player.
+      const rad = playerAngle * Math.PI / 180,
+        cos = Math.cos(rad),
+        sin = Math.sin(rad),
+        dx = 0,
+        dz = -0.5,
+        x = cos * dx - sin * dz,
+        z = sin * dx + cos * dz;
+      ball.body.position = new CANNON.Vec3(-x, 2.4, z);
+    }
+
+    function applyForce(x, y, z) {
+      console.log('forces in', x, y, z);
+      const yAngle = player.getAttribute('rotation').y * Math.PI / 180,
+        cos = Math.cos(yAngle),
+        sin = Math.sin(yAngle),
+        normx = cos * x - sin * z,
+        normz = sin * x + cos * z;
+      console.log('forces out', -normx, y, normz);
+      ball.body.applyForce(
+        new CANNON.Vec3(-normx, y, normz),
+        new CANNON.Vec3().copy(ball.body.position));
     }
 
     function oncollide(e) {
@@ -175,7 +174,7 @@
     function ontouchend(event) {
       const touch = getTouch(event);
       const deltaY = (touch.pageY - lastTouchPosition.pageY) / maxY;
-      if (deltaY >= -0.05) return;
+      if (deltaY >= -0.05 || Number.isNaN(deltaY)) return;
       const deltaX = (lastTouchPosition.pageX - touch.pageX) / maxX;
       const deltaTime = 1000 / Math.min(maxTime, performance.now() - lastTouchPosition.time);
 
@@ -183,29 +182,12 @@
       const forceY = 80 * deltaTime;
       const forceZ = 200 * deltaY * deltaTime;
 
-
-      // const forceX = Math.random() * 100 - 200;
-      // const forceY = Math.random() * 250 - 500;
-      // const forceZ = -(Math.random() * 1000 + 500);
       applyForce(forceX, forceY, forceZ);
 
       removeInteractionListeners();
       // Wait 7s then restart.
       restartTimeout && clearTimeout(restartTimeout);
       restartTimeout = setTimeout(restart, 7000);
-    }
-
-    function applyForce(x, y, z) {
-      console.log('forces in', x, y, z);
-      const yAngle = player.getAttribute('rotation').y * Math.PI / 180,
-        cos = Math.cos(yAngle),
-        sin = Math.sin(yAngle),
-        normx = cos * x - sin * z,
-        normz = sin * x + cos * z;
-      console.log('forces out', -normx, y, normz);
-      ball.body.applyForce(
-        new CANNON.Vec3(-normx, y, normz),
-        new CANNON.Vec3().copy(ball.body.position));
     }
 
     function getTouch(event) {
