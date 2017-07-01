@@ -56,7 +56,7 @@
         <!--boundaries -->
         <a-entity visible="false">
           <a-plane id="ground" static-body position="0 0 25" rotation="-90 0 0" width="2000" height="2000"></a-plane>
-          <a-plane static-body position="0 50 25" width="2000" height="100"></a-plane>
+          <a-plane static-body position="0 50 -25" width="2000" height="100"></a-plane>
         </a-entity>
         <!--goal-->
         <a-entity position="0 0 -20" id="goal">
@@ -92,18 +92,14 @@
       if (!started) {
         netsBodies = Array.from(goal.querySelectorAll('a-plane')).map(el => el.body);
       } else {
-        const position = {
+        moveTo({
           x: (Math.random() - Math.random()) * 40,
           y: 0,
           z: 16 - Math.random() * 56
-        };
-        console.log(position);
-        moveTo(position);
+        });
       }
       started = true;
 
-      ball.body.velocity = new CANNON.Vec3(0, 0, 0);
-      ball.body.angularVelocity = new CANNON.Vec3(0, 0, 0);
 
       ball.body.addEventListener('collide', oncollide);
       document.body.classList.remove('goal');
@@ -111,6 +107,7 @@
     }
 
     function moveTo(position) {
+      console.log('moveTo', position);
       const playerAngle = player.getAttribute('rotation').y;
       const worldAngle = playerAngle - 90 - Math.atan2(position.z - 20, position.x) * 180 / Math.PI;
       // update rotation to face goal.
@@ -129,19 +126,26 @@
         dz = -0.5,
         x = cos * dx - sin * dz,
         z = sin * dx + cos * dz;
+
+      ball.body.velocity = new CANNON.Vec3(0, 0, 0);
+      ball.body.angularVelocity = new CANNON.Vec3(0, 0, 0);
       ball.body.position = new CANNON.Vec3(-x, 2.4, z);
     }
 
-    function applyForce(x, y, z) {
-      console.log('forces in', x, y, z);
-      const yAngle = player.getAttribute('rotation').y * Math.PI / 180,
-        cos = Math.cos(yAngle),
-        sin = Math.sin(yAngle),
-        normx = cos * x - sin * z,
-        normz = sin * x + cos * z;
-      console.log('forces out', -normx, y, normz);
+    function applyForce(force) {
+      console.log('force in', force);
+      const playerAngle = player.getAttribute('rotation').y,
+        rad = playerAngle * Math.PI / 180,
+        cos = Math.cos(rad),
+        sin = Math.sin(rad),
+        forceOut = new CANNON.Vec3(
+          cos * force.x - sin * force.z,
+          force.y,
+          sin * force.x + cos * force.z
+        );
+      console.log('force out', forceOut);
       ball.body.applyForce(
-        new CANNON.Vec3(-normx, y, normz),
+        forceOut,
         new CANNON.Vec3().copy(ball.body.position));
     }
 
@@ -182,7 +186,11 @@
       const forceY = 80 * deltaTime;
       const forceZ = 200 * deltaY * deltaTime;
 
-      applyForce(forceX, forceY, forceZ);
+      applyForce({
+        x: forceX,
+        y: forceY,
+        z: forceZ
+      });
 
       removeInteractionListeners();
       // Wait 7s then restart.
