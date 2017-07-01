@@ -1,0 +1,31 @@
+{
+  "name": "head-wheel",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "valdrinkoshi <valdrin@google.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/valdrinkoshi/head-wheel",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "app-media": "PolymerElements/app-media#^0.7.2"
+  },
+  "_release": "459ea59dc2",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "459ea59dc22508e3071673b88d81b2c95018e492"
+  },
+  "_source": "https://github.com/valdrinkoshi/head-wheel.git",
+  "_target": "master",
+  "_originalSource": "valdrinkoshi/head-wheel",
+  "_direct": true
+}
