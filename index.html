@@ -139,7 +139,7 @@
         cos = Math.cos(rad),
         sin = Math.sin(rad),
         forceOut = new CANNON.Vec3(
-          cos * force.x - sin * force.z,
+          -(cos * force.x - sin * force.z),
           force.y,
           sin * force.x + cos * force.z
         );
@@ -179,7 +179,7 @@
       const touch = getTouch(event);
       const deltaY = (touch.pageY - lastTouchPosition.pageY) / maxY;
       if (deltaY >= -0.05 || Number.isNaN(deltaY)) return;
-      const deltaX = (touch.pageX - lastTouchPosition.pageX) / maxX;
+      const deltaX = -(touch.pageX - lastTouchPosition.pageX) / maxX;
       const deltaTime = 1000 / Math.min(maxTime, performance.now() - lastTouchPosition.time);
 
       const forceX = 200 * deltaX * deltaTime;
